@@ -73,7 +73,7 @@ public class WorkflowExample extends JFrame
     public static void main(String[] args)
     {
         WorkflowExample frame = new WorkflowExample();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setSize(1000, 320);
         frame.setVisible(true);
     }

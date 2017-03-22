@@ -1,6 +1,6 @@
 package com.gureev.nd.graph;
 
-import javax.swing.JFrame;
+import javax.swing.*;
 
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.view.mxGraph;
@@ -40,7 +40,7 @@ public class HelloWorld extends JFrame
     public static void main(String[] args)
     {
         HelloWorld frame = new HelloWorld();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setSize(400, 320);
         frame.setVisible(true);
     }
