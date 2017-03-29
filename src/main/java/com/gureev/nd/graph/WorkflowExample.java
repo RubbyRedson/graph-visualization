@@ -12,19 +12,12 @@ import java.util.Hashtable;
 /**
  * Created by Nick on 3/22/2017.
  */
-public class WorkflowExample extends JFrame
+public class WorkflowExample
 {
-    private static final long serialVersionUID = -2707712944901661771L;
-    
     private static final int centerX = 500;
     private static final int centerY = 160;
 
-
-
-    public WorkflowExample()
-    {
-        super("Test Workflow");
-
+    private static mxGraph getGraph() {
         mxGraph graph = new mxGraph();
 
         //Create style
@@ -60,22 +53,24 @@ public class WorkflowExample extends JFrame
             graph.getModel().endUpdate();
         }
 
-
-        mxGraphComponent graphComponent = new mxGraphComponent(graph);
-        getContentPane().add(graphComponent);
-
-        // Set hierarchical layout, so the nodes are organized horizontally
-        mxHierarchicalLayout layout = new mxHierarchicalLayout(graph);
-        layout.setOrientation(SwingConstants.WEST);
-        layout.execute(graph.getDefaultParent());
+        return graph;
     }
 
     public static void main(String[] args)
     {
-        WorkflowExample frame = new WorkflowExample();
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setSize(1000, 320);
-        frame.setVisible(true);
+        mxGraph graph = getGraph();
+        mxGraphComponent graphComponent = new mxGraphComponent(graph);
+
+        // Set hierarchical layout, so the nodes are organized horizontally (WEST) or vertically (NORTH)
+        mxHierarchicalLayout layout = new mxHierarchicalLayout(graph);
+        layout.setOrientation(SwingConstants.NORTH);
+        layout.execute(graph.getDefaultParent());
+        JScrollPane scrollPane = new JScrollPane(graphComponent);
+        JFrame parent = new JFrame();
+        parent.setContentPane(scrollPane);
+        parent.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        parent.setSize(1000, 320);
+        parent.setVisible(true);
     }
 
 }
