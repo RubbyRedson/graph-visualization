@@ -2,21 +2,34 @@ package com.gureev.nd.graph;
 
 import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
 import com.mxgraph.model.mxCell;
+import com.mxgraph.model.mxGeometry;
+import com.mxgraph.swing.handler.mxPanningHandler;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxConstants;
+import com.mxgraph.util.mxRectangle;
 import com.mxgraph.view.mxGraph;
+import com.mxgraph.view.mxGraphView;
 import com.mxgraph.view.mxStylesheet;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
+import java.awt.print.PageFormat;
 import java.util.*;
+
+import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 
 /**
  * Created by Nick on 4/4/2017.
  */
 public class WorkflowWithDiffExample {
 
-    private static final int centerX = 500;
-    private static final int centerY = 160;
+    private static final int WIDTH = 1000;
+    private static final int HEIGHT = 320;
+    private static final int centerX = WIDTH/2;
+    private static final int centerY = HEIGHT/2;
 
     private static mxGraph getGraph() {
         mxGraph graph = new mxGraph();
@@ -214,18 +227,54 @@ public class WorkflowWithDiffExample {
             resultingGraph.getModel().endUpdate();
         }
 
+        mxGraphComponent graphComponent = new mxGraphComponent(graph);
 
-        mxGraphComponent graphComponent = new mxGraphComponent(resultingGraph);
         graphComponent.refresh();
         // Set hierarchical layout, so the nodes are organized horizontally (WEST) or vertically (NORTH)
         mxHierarchicalLayout layout = new mxHierarchicalLayout(graph);
         layout.setOrientation(SwingConstants.WEST);
         layout.execute(graph.getDefaultParent());
-        JScrollPane scrollPane = new JScrollPane(graphComponent);
         JFrame parent = new JFrame();
-        parent.setContentPane(scrollPane);
+
+        graphComponent.setWheelScrollingEnabled(false);
+        parent.addMouseWheelListener(new ZoomOnScroll(graphComponent));
+
+        parent.setContentPane(graphComponent);
         parent.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        parent.setSize(1000, 320);
+        parent.setSize(WIDTH, HEIGHT);
         parent.setVisible(true);
+    }
+
+    static class ZoomOnScroll implements MouseWheelListener {
+        double scale = 1;
+        mxGraphComponent graphComponent;
+
+        public ZoomOnScroll(mxGraphComponent graphComponent) {
+            this.graphComponent = graphComponent;
+        }
+
+        @Override
+        public void mouseWheelMoved(MouseWheelEvent e) {
+            mxGraph graph = graphComponent.getGraph();
+            if (e.getWheelRotation() < 0){
+                scale = scale + 0.1;
+                graphComponent.getGraph().getView().scaleAndTranslate(scale,
+                        (graph.getGraphBounds().getCenterX()
+                                -(graph.getGraphBounds().getWidth()/2))/scale,
+                        (graph.getGraphBounds().getCenterY()
+                                -(graph.getGraphBounds().getHeight()/2))/scale);
+            } else {
+                if((scale - 0.1) > 0){
+                    scale = scale - 0.1;
+                    graphComponent.getGraph().getView().scaleAndTranslate(scale,
+                            (graph.getGraphBounds().getCenterX()
+                                    -(graph.getGraphBounds().getWidth()/2))/scale,
+                            (graph.getGraphBounds().getCenterY()
+                                    -(graph.getGraphBounds().getHeight()/2))/scale);
+                }
+            }
+            e.consume();
+        }
+
     }
 }
