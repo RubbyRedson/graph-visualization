@@ -5,12 +5,12 @@ import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxGeometry;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxConstants;
+import com.mxgraph.util.mxPoint;
 import com.mxgraph.view.mxGraph;
 import com.mxgraph.view.mxStylesheet;
 
 import javax.swing.*;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
+import java.awt.event.*;
 import java.util.*;
 
 /**
@@ -18,12 +18,16 @@ import java.util.*;
  */
 public class WorkflowWithDiffExample {
 
-    private static final int WIDTH = 1000;
-    private static final int HEIGHT = 320;
+    private static int WIDTH = 1000;
+    private static int HEIGHT = 320;
     private static final int centerX = WIDTH/2;
     private static final int centerY = HEIGHT/2;
     private static final int WIDTH_OFFSET = WIDTH / 4;
     private static final int HEIGHT_OFFSET = HEIGHT / 4;
+
+    private static double WIDTH_LIMIT = WIDTH;
+    private static double HEIGHT_LIMIT = HEIGHT;
+
     private static final int ORIENTATION = SwingConstants.WEST;
 
 
@@ -58,7 +62,6 @@ public class WorkflowWithDiffExample {
         {
             graph.getModel().endUpdate();
         }
-
         return graph;
     }
 
@@ -224,7 +227,6 @@ public class WorkflowWithDiffExample {
         }
 
         mxGraphComponent graphComponent = new mxGraphComponent(graph);
-        //moveGraph(graphComponent, 0, 0);
         graphComponent.refresh(); // Refreshes colors of nodes after diff
 
         // Set hierarchical layout, so the nodes are organized horizontally (WEST) or vertically (NORTH)
@@ -233,6 +235,9 @@ public class WorkflowWithDiffExample {
 
         // No selection for nodes/edges
         graph.setCellsSelectable(false);
+        graph.setCellsEditable(false);
+        graph.setCellsDeletable(false);
+
 
         layout.execute(graph.getDefaultParent());
         JFrame parent = new JFrame();
@@ -241,19 +246,94 @@ public class WorkflowWithDiffExample {
         graphComponent.setWheelScrollingEnabled(false);
         parent.addMouseWheelListener(new ZoomOnScroll(graphComponent));
 
+        // Move graph with mouse
+        DragWholeGraph dragWholeGraph = new DragWholeGraph(graph);
+        graphComponent.getGraphControl().addMouseListener(dragWholeGraph);
+        graphComponent.getGraphControl().addMouseMotionListener(dragWholeGraph);
+
+        // Modify width, height and limiters on resize
+        parent.addComponentListener(new ResizeListener());
+
         parent.setContentPane(graphComponent);
         parent.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         parent.setSize(WIDTH, HEIGHT);
         parent.setVisible(true);
     }
 
-    private static void moveGraph(mxGraphComponent graphComponent, int x, int y) {
-        mxGraph graph = graphComponent.getGraph();
-        double width = graph.getGraphBounds().getWidth();
-        double height = graph.getGraphBounds().getHeight();
+    private static void moveGraph(mxGraph graph, int x, int y) {
+
+        double currentX = graph.getGraphBounds().getX();
+        double currentY = graph.getGraphBounds().getY();
+
+        double newX = currentX;
+        if (checkWidth(graph, currentX + x))
+            newX = currentX + x;
+
+        double newY = currentY;
+        if (checkHeight(graph, currentY + y))
+            newY = currentY + y;
+
         graph.getModel().setGeometry(graph.getDefaultParent(),
-                new mxGeometry(width + x, height + y,
+                new mxGeometry(newX, newY,
                         WIDTH, HEIGHT));
+    }
+
+    private static boolean checkWidth(mxGraph graph, double x) {
+        return (x > 0 && (x + graph.getGraphBounds().getWidth()) < WIDTH_LIMIT);
+    }
+
+    private static boolean checkHeight(mxGraph graph, double y) {
+        return (y > 0 && (y + graph.getGraphBounds().getHeight()) < HEIGHT_LIMIT);
+    }
+
+    static class DragWholeGraph implements MouseListener, MouseMotionListener {
+
+        private mxGraph graph;
+
+        private int initialX;
+        private int initialY;
+
+        public DragWholeGraph(mxGraph graph) {
+            this.graph = graph;
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {
+            initialX = e.getX();
+            initialY = e.getY();
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+        }
+
+        @Override
+        public void mouseEntered(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mouseExited(MouseEvent e) {
+
+        }
+
+        @Override
+        public void mouseDragged(MouseEvent e) {
+            System.out.println("Dragged, diffs " + (initialX - e.getX()) + " " + (initialY - e.getY()));
+            moveGraph(graph, initialX - e.getX(), initialY - e.getY());
+            initialX = e.getX();
+            initialY = e.getY();
+        }
+
+        @Override
+        public void mouseMoved(MouseEvent e) {
+
+        }
     }
 
     static class ZoomOnScroll implements MouseWheelListener {
@@ -287,5 +367,32 @@ public class WorkflowWithDiffExample {
             e.consume();
         }
 
+    }
+
+    static class ResizeListener implements ComponentListener {
+
+        @Override
+        public void componentResized(ComponentEvent e) {
+            WIDTH = e.getComponent().getWidth();
+            HEIGHT = e.getComponent().getHeight();
+
+            WIDTH_LIMIT = WIDTH;
+            HEIGHT_LIMIT = HEIGHT;
+        }
+
+        @Override
+        public void componentMoved(ComponentEvent e) {
+
+        }
+
+        @Override
+        public void componentShown(ComponentEvent e) {
+
+        }
+
+        @Override
+        public void componentHidden(ComponentEvent e) {
+
+        }
     }
 }
