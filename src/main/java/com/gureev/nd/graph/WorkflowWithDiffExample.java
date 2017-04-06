@@ -3,23 +3,15 @@ package com.gureev.nd.graph;
 import com.mxgraph.layout.hierarchical.mxHierarchicalLayout;
 import com.mxgraph.model.mxCell;
 import com.mxgraph.model.mxGeometry;
-import com.mxgraph.swing.handler.mxPanningHandler;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.util.mxConstants;
-import com.mxgraph.util.mxRectangle;
 import com.mxgraph.view.mxGraph;
-import com.mxgraph.view.mxGraphView;
 import com.mxgraph.view.mxStylesheet;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.print.PageFormat;
 import java.util.*;
-
-import static javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER;
 
 /**
  * Created by Nick on 4/4/2017.
@@ -30,6 +22,10 @@ public class WorkflowWithDiffExample {
     private static final int HEIGHT = 320;
     private static final int centerX = WIDTH/2;
     private static final int centerY = HEIGHT/2;
+    private static final int WIDTH_OFFSET = WIDTH / 4;
+    private static final int HEIGHT_OFFSET = HEIGHT / 4;
+    private static final int ORIENTATION = SwingConstants.WEST;
+
 
     private static mxGraph getGraph() {
         mxGraph graph = new mxGraph();
@@ -228,14 +224,20 @@ public class WorkflowWithDiffExample {
         }
 
         mxGraphComponent graphComponent = new mxGraphComponent(graph);
+        //moveGraph(graphComponent, 0, 0);
+        graphComponent.refresh(); // Refreshes colors of nodes after diff
 
-        graphComponent.refresh();
         // Set hierarchical layout, so the nodes are organized horizontally (WEST) or vertically (NORTH)
         mxHierarchicalLayout layout = new mxHierarchicalLayout(graph);
-        layout.setOrientation(SwingConstants.WEST);
+        layout.setOrientation(ORIENTATION);
+
+        // No selection for nodes/edges
+        graph.setCellsSelectable(false);
+
         layout.execute(graph.getDefaultParent());
         JFrame parent = new JFrame();
 
+        // Wheel is used for zoom
         graphComponent.setWheelScrollingEnabled(false);
         parent.addMouseWheelListener(new ZoomOnScroll(graphComponent));
 
@@ -243,6 +245,15 @@ public class WorkflowWithDiffExample {
         parent.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         parent.setSize(WIDTH, HEIGHT);
         parent.setVisible(true);
+    }
+
+    private static void moveGraph(mxGraphComponent graphComponent, int x, int y) {
+        mxGraph graph = graphComponent.getGraph();
+        double width = graph.getGraphBounds().getWidth();
+        double height = graph.getGraphBounds().getHeight();
+        graph.getModel().setGeometry(graph.getDefaultParent(),
+                new mxGeometry(width + x, height + y,
+                        WIDTH, HEIGHT));
     }
 
     static class ZoomOnScroll implements MouseWheelListener {
