@@ -283,7 +283,7 @@ public class WorkflowWithDiffExample {
     }
 
     private static boolean checkHeight(mxGraph graph, double y) {
-        return (y > 0 && (y + graph.getGraphBounds().getHeight()) < HEIGHT_LIMIT);
+        return (y > 0 && (y + graph.getGraphBounds().getHeight() * 1.3) < HEIGHT_LIMIT);
     }
 
     static class DragWholeGraph implements MouseListener, MouseMotionListener {
